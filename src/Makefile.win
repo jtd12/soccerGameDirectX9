@@ -1,0 +1,55 @@
+# Project: Projet1
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = main.o setup.o robot.o decor.o balle.o zones.o supporter.o skybox.o ocean.o passsystem.o
+LINKOBJ  = main.o setup.o robot.o decor.o balle.o zones.o supporter.o skybox.o ocean.o passsystem.o
+LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib32" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib32" -static-libgcc "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d2d1.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d9.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d10.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d10_1.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d11.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dcompiler.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/D3DCSX.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/D3DCSXd.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx9.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx9d.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx10.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx10d.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx11.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx11d.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dxof.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dinput8.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dsetup.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dsound.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dwrite.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/DxErr.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dxgi.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/dxguid.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/X3DAudio.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/xapobase.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/xapobased.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/XAPOFX.lib" "C:/library/Microsoft DirectX SDK (June 2010)/Lib/x86/XInput.lib" -m32
+INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
+CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
+BIN      = Projet1.exe
+CXXFLAGS = $(CXXINCS) -m32
+CFLAGS   = $(INCS) -m32
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.cpp
+	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
+
+setup.o: setup.cpp
+	$(CPP) -c setup.cpp -o setup.o $(CXXFLAGS)
+
+robot.o: robot.cpp
+	$(CPP) -c robot.cpp -o robot.o $(CXXFLAGS)
+
+decor.o: decor.cpp
+	$(CPP) -c decor.cpp -o decor.o $(CXXFLAGS)
+
+balle.o: balle.cpp
+	$(CPP) -c balle.cpp -o balle.o $(CXXFLAGS)
+
+zones.o: zones.cpp
+	$(CPP) -c zones.cpp -o zones.o $(CXXFLAGS)
+
+supporter.o: supporter.cpp
+	$(CPP) -c supporter.cpp -o supporter.o $(CXXFLAGS)
+
+skybox.o: skybox.cpp
+	$(CPP) -c skybox.cpp -o skybox.o $(CXXFLAGS)
+
+ocean.o: ocean.cpp
+	$(CPP) -c ocean.cpp -o ocean.o $(CXXFLAGS)
+
+passsystem.o: passsystem.cpp
+	$(CPP) -c passsystem.cpp -o passsystem.o $(CXXFLAGS)
