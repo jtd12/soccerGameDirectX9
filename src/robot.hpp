@@ -22,6 +22,8 @@ class robot
 		bool movement(D3DXVECTOR3 playerLoc,float speedDir);
 		void render(	LPDIRECT3DDEVICE9 d3ddev);
 		D3DXVECTOR3 getLocation();
+		void setLocationincremente(D3DXVECTOR3 pos);
+		void movementGoal(D3DXVECTOR3 balleLoc,float speedDir);
 		void setNext(bool s);
 		bool getNext();
 		void setTirer(bool t);
@@ -34,8 +36,13 @@ class robot
 		bool getdefendre();
 		float getRot();
     	void setRot(float r);
-    	
-	    	struct CUSTOMVERTEX {
+    	void setRotBrasInc(float r);
+    	void setRotBras(float r);
+    	void  update();
+    	float getSpeed();
+    	void setSpeed(float s);
+    	void tirGoal(D3DXVECTOR3 ballLoc,float speed);
+	struct CUSTOMVERTEX {
 		float X;
 		float Y;
 		float Z;
@@ -64,14 +71,19 @@ class robot
 	    D3DXMATRIX matScaleB;    // a matrix to store the translation for triangle B
 	    D3DXMATRIX matScaleFinal;    // a matrix to store the translation for triangle B
 	    D3DXMATRIX matRotateY;    // a matrix to store the rotation for each triangle	
+	    D3DXMATRIX matRotateX;    // a matrix to store the rotation for each triangle
+	    D3DXMATRIX matRotateX2;    // a matrix to store the rotation for each triangle
 		D3DMATERIAL9 mat,mat2;	
 		D3DXVECTOR3 position;
 		D3DXVECTOR3 color;
 		float rot;	
+		float rotX;
+		float rotX2;
 		bool next;
 		bool hastheball;
 		bool attaquer_,defendre_;
-		bool tirer;		
+		bool tirer;	
+		float speed;	
 };
 
 #endif

@@ -63,7 +63,7 @@
     D3DXMATRIX matRotateY;    // a matrix to store the rotation for each triangle
     D3DXMatrixTranslation(&matTranslateFinal, position.x, position.y, position.z);
     D3DXMatrixRotationY(&matRotateY, index);    // the rotation matrix
-    D3DXMatrixScaling(&matScale, 8.0f, 8.0f, 8.0f);
+    D3DXMatrixScaling(&matScale, 10.0f, 10.0f, 10.0f);
     D3DMATRIX matTemp(matScale*matTranslateFinal);
     d3ddev->SetTransform(D3DTS_WORLD, &matTemp);    // set the world transform
 

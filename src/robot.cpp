@@ -7,6 +7,7 @@ robot::robot(D3DXVECTOR3 pos,LPDIRECT3DDEVICE9 d3ddev,float r,D3DXVECTOR3 col)
 	rot=r;
 	color=col;
 	position=pos;
+	speed=1.3f;
 }
 
 robot::~robot()
@@ -117,29 +118,80 @@ bool robot::movement(D3DXVECTOR3 playerLoc,float speedDir)
 			{ 
 			newpos.y=13.5f;
 			}
-			newpos.x-=direction->x*0.3f;
-			newpos.y-=direction->y*0.3f;
-			newpos.z-=direction->z*0.3f;
+			newpos.x-=direction->x*0.7f*speed;
+			newpos.y-=direction->y*0.7f*speed;
+			newpos.z-=direction->z*0.7f*speed;
 			
 			setLocation(newpos);
 			  
-			 	rot=acos(direction->z*speedDir);
+
+			 	  	rot=acos(direction->z*speedDir);
+		
+				   
+				   	if(direction->z<0 )
+			 	  {
+			 	  	rot=-rot;
+				   }
+
+}
+
+void robot::movementGoal(D3DXVECTOR3 balleLoc,float speedDir)
+{
+			D3DXVECTOR3 u=D3DXVECTOR3(balleLoc.x, balleLoc.y, balleLoc.z);
+		   	D3DXVECTOR3 v=D3DXVECTOR3(position.x-balleLoc.x, position.y-balleLoc.y, position.z-balleLoc.z);
+		   	D3DXVECTOR3* direction;
+		   	
+		   	direction=D3DXVec3Normalize(&u,&v);
+		   	
+			rot=acos(direction->z*speedDir);
 			 	
 			 	if(direction->z>0)
 			 	  {
 			 	  	rot=-rot;
 				   }
-	
+				   
+			position.z=balleLoc.z;
+			if(position.z>40)
+			  position.z=40;
+			else if(position.z<-40)
+			  position.z=-40;
+}
 
+void robot::tirGoal(D3DXVECTOR3 ballLoc,float speed)
+{
+	float d=sqrt(((getLocation().x-ballLoc.x)*(getLocation().x-ballLoc.x))
+	+((getLocation().y-ballLoc.y)*(getLocation().y-ballLoc.y))
+	+((getLocation().z-ballLoc.z)*(getLocation().z-ballLoc.z)));
+	
+	if(d<8)
+	{
+		ballLoc+=D3DXVECTOR3(20*speed,0,0);
+	}
 }
 
 
 		
 void robot::update(D3DXVECTOR3 translation)
 {
-
-	position+=translation*1.3f;
+	position+=translation*speed;
 }
+
+void robot::update()
+{
+	setRotBrasInc(0.025f);
+}
+
+void robot::setRotBrasInc(float r)
+{
+	rotX2+=r;
+	if(rotX2>0.75f)
+	  rotX2=-0.2f;
+	  
+	rotX-=r;
+	if(rotX<-0.75f)
+	  rotX=0.2f;
+}
+
 
 
 
@@ -170,6 +222,8 @@ void robot::render(	LPDIRECT3DDEVICE9 d3ddev) {
     D3DXMatrixTranslation(&matTranslateF, 5.0f, -6.0f, 0.0f);
     
     D3DXMatrixRotationY(&matRotateY, rot);    // the front side
+    D3DXMatrixRotationX(&matRotateX, rotX);    // the front side
+    D3DXMatrixRotationX(&matRotateX2, rotX2);    // the front side
     
     D3DXMatrixScaling(&matScale, 2.0f, 2.0f, 1.0f);
     D3DXMatrixScaling(&matScaleFinal, 0.15f, 0.15f, 0.15f);
@@ -208,7 +262,7 @@ void robot::render(	LPDIRECT3DDEVICE9 d3ddev) {
 	hr2 = d3ddev->SetMaterial(&mat2);
 d3ddev-> DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12);
     
-	 	matTemp = matTranslateC*matScaleB*matRotateY*matScaleFinal*matTranslateFinal;
+	 	matTemp = matTranslateC*matScaleB*matRotateX*matRotateY*matScaleFinal*matTranslateFinal;
     d3ddev->SetTransform(D3DTS_WORLD, &matTemp);
     
 
@@ -216,13 +270,13 @@ d3ddev-> DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12);
 
 
 
-	 	matTemp = matTranslateD*matScaleB*matRotateY*matScaleFinal*matTranslateFinal;
+	 	matTemp = matTranslateD*matScaleB*matRotateX2*matRotateY*matScaleFinal*matTranslateFinal;
     d3ddev->SetTransform(D3DTS_WORLD, &matTemp);
     
 
 d3ddev-> DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12);
 
-	matTemp = matTranslateE*matScaleB*matRotateY*matScaleFinal*matTranslateFinal;
+	matTemp = matTranslateE*matScaleB*matRotateX2*matRotateY*matScaleFinal*matTranslateFinal;
     d3ddev->SetTransform(D3DTS_WORLD, &matTemp);
     
    d3ddev->SetTransform(D3DTS_WORLD, &matTemp);
@@ -230,7 +284,7 @@ d3ddev-> DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12);
 	
 d3ddev-> DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12);
 
-matTemp = matTranslateF*matScaleB*matRotateY*matScaleFinal*matTranslateFinal;
+matTemp = matTranslateF*matScaleB*matRotateX*matRotateY*matScaleFinal*matTranslateFinal;
     d3ddev->SetTransform(D3DTS_WORLD, &matTemp);
     
 
@@ -254,7 +308,10 @@ void robot::setLocation(D3DXVECTOR3 pos)
 {
 	position=pos;
 }
-
+void robot::setLocationincremente(D3DXVECTOR3 pos)
+{
+	position+=pos*speed;
+}
 D3DXVECTOR3 robot::getLocation()
 {
 	return position;
@@ -301,5 +358,13 @@ bool robot::getTirer()
 		 	 bool robot::getdefendre()
 		 {
 		 	return defendre_;
+		 }
+		 float robot::getSpeed()
+		 {
+		 	return speed;
+		 }
+		 void robot::setSpeed(float s)
+		 {
+		 	speed=s;
 		 }
 

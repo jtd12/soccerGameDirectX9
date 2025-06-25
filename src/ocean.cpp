@@ -1,5 +1,7 @@
 #include"ocean.hpp"
 
+int MaxFrames=100;
+
 ocean::ocean(LPDIRECT3DDEVICE9 d3ddev)
 {	
 	d3ddev_=d3ddev;

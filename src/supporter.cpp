@@ -132,7 +132,7 @@ void supporter::render(	LPDIRECT3DDEVICE9 d3ddev) {
     D3DXMatrixRotationY(&matRotateY, rot);    // the front side
     D3DXMatrixRotationX(&matRotateBras, rot_bras);    // the front side
     D3DXMatrixScaling(&matScale, 2.0f, 2.0f, 1.0f);
-    D3DXMatrixScaling(&matScaleFinal, 0.2f, 0.2f, 0.2f);
+    D3DXMatrixScaling(&matScaleFinal, 0.35f, 0.35f, 0.35f);
 	D3DXMatrixScaling(&matScaleB, 1.0f, 4.5f, 1.0f);
 		 
     // tell Direct3D about each world transform, and then draw another triangle
