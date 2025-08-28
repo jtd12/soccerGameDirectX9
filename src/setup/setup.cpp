@@ -105,7 +105,7 @@ void setup::init_Light()
 	d3ddev->SetLight(0,&light);
 	d3ddev->LightEnable(0,true);
 	ZeroMemory(&material,sizeof(D3DMATERIAL9));
-	material.Diffuse=D3DXCOLOR(20.9,20.9,20.0,1.0);
+	material.Diffuse=D3DXCOLOR(200.9,200.9,200.0,1.0);
 	material.Ambient=D3DXCOLOR(1.0,1.0,1.0,1.0);
 	d3ddev->SetMaterial(&material);
 	d3ddev->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(100, 100, 100));
@@ -114,15 +114,15 @@ void setup::init_Light()
 	 D3DMATERIAL9 material2;
 	ZeroMemory(&light2,sizeof(light2));
 	light2.Type=D3DLIGHT_DIRECTIONAL;
-	light2.Diffuse=D3DXCOLOR(1.9,1.9,1.0,1.0);
+	light2.Diffuse=D3DXCOLOR(0.9,0.9,1.0,1.0);
 	light2.Direction=D3DXVECTOR3(-5.0,-850.0,-250.0);
 	d3ddev->SetLight(1,&light2);
 	d3ddev->LightEnable(1,true);
 	ZeroMemory(&material,sizeof(D3DMATERIAL9));
-	material2.Diffuse=D3DXCOLOR(20.9,20.9,20.0,1.0);
+	material2.Diffuse=D3DXCOLOR(200.9,200.9,20.0,1.0);
 	material2.Ambient=D3DXCOLOR(1.0,1.0,1.0,1.0);
 	d3ddev->SetMaterial(&material2);
-	d3ddev->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(120, 120, 120));
+	d3ddev->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(170, 170, 160));
 
 	
 }
@@ -149,5 +149,8 @@ void setup::render_frame()
 	
 }
 
-
+together* setup::themtogether()
+{
+	return p;
+}
 

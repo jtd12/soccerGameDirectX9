@@ -28,7 +28,7 @@ class setup
 	void render_frame();
 	void init_Light();
 	void init_graphics(HWND hwnd);
-
+	together* themtogether();
 	private:
 
 	LPDIRECT3D9 d3d;

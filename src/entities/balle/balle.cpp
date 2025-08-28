@@ -5,6 +5,7 @@
 		
 	init(d3ddev);
 	position=D3DXVECTOR3(0,15,0);
+	gravity=2.0f;
 	}
 	
 	balle::~balle()
@@ -50,7 +51,7 @@
 		}
 		
 	void balle::update(){
-		float deltaTime=0.1f;
+		float deltaTime=.25f;
 		  position += velocity * deltaTime;
 
     // Appliquer un ralentissement progressif (friction)
@@ -59,7 +60,7 @@
     // Si la vitesse est très faible, on l'arrête complètement
 
     
-			position.y-=1.1f;
+			position.y-=gravity;
 			if(position.y<8)
 			  position.y=8;
 		}
@@ -178,4 +179,9 @@
 		void balle::centrerCoteDroit_(bool c)
 		{
 		 centrercotedroit=c;
+		}
+		
+		void balle::setGravity(float s)
+		{
+			 gravity=s;
 		}

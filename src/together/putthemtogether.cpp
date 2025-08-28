@@ -134,6 +134,7 @@ together::together(LPDIRECT3DDEVICE9 d3ddev,HWND hwnd)
     	srand(static_cast<unsigned int>(time(0)));
    		son=new sound(hwnd);
    		balleSound=son->loadSound("data/sound/balle.wav");
+   		numberSupport=3000;
 }
 
 together::~together()
@@ -226,6 +227,11 @@ void together::goal_()
 	}
 }
 
+bool together::checkTouche(D3DXVECTOR3 posBall, float terrainMinX, float terrainMaxX)
+{
+    return (posBall.x < terrainMinX || posBall.x > terrainMaxX);
+}
+
 void together::update(LPDIRECT3DDEVICE9 d3ddev)
 {
 	float deltaTime = 0.5f;
@@ -293,7 +299,6 @@ if(miTemps>=2)
 	temps+=0.01f;
 	loadCinematik1();
 	prepareTeams();
- 	numberSupport=3000;
  	minNumberSupport=0;
 	}
 
@@ -310,7 +315,6 @@ if(miTemps>=2)
 	printf("position ballY: %2f ",b->getLocation().y);
 	printf("position ballZ: %2f ",b->getLocation().z);
 	minNumberSupport=150;
-	numberSupport=2000;
 	camFollowBall( d3ddev);
 	temps+=0.01f;
 	collision();
@@ -322,16 +326,16 @@ if(miTemps>=2)
 	separatePlayer();
 	separatePlayerAI();
 	
-	passer(player[0]);
-	passer(player[1]);
-	passer(player[2]);
-	passer(player[3]);
-	passer(player[4]);
-	passer(player[5]);
-	passer(player[6]);
-	passer(player[7]);
-	passer(player[8]);
-	passer(player[9]);
+	passer(player[0],playerAI,player);
+	passer(player[1],playerAI,player);
+	passer(player[2],playerAI,player);
+	passer(player[3],playerAI,player);
+	passer(player[4],playerAI,player);
+	passer(player[5],playerAI,player);
+	passer(player[6],playerAI,player);
+	passer(player[7],playerAI,player);
+	passer(player[8],playerAI,player);
+	passer(player[9],playerAI,player);
 	
 	
 	tirer(player[0]);
@@ -2085,60 +2089,83 @@ void together::collisionStadeBall(balle* b)
 	
  }
 
-void together::passer(robot* player)
+void together::passer(robot* playerHumain, const std::vector<robot*>& aiPlayers, const std::vector<robot*>& humanPlayers)
 {
-    static float passeCooldown = 0.0f;  // Cooldown de la passe
-
-    // Mise à jour du cooldown
-   // Cooldown
+	static float passeCooldown = 0.0f;
+	float puissancePasse=20.0f;
     if (passeCooldown > 0.0f)
         passeCooldown -= 1.0f;
 
-    if (!player->gethastheball()) return;
 
-    // Début de charge si la touche est enfoncée
-    if (KEY_DOWN(VK_LCONTROL) && passeCooldown <= 0.0f)
+    if (!playerHumain->gethastheball()) return;
+
+	if (KEY_DOWN(VK_LCONTROL) && passeCooldown <= 0.0f)
     {
-        chargingPasse = true;
-        puissancePasse += 50.0f;
-        if (puissancePasse > 500.0f) puissancePasse = 500.0f; // Limite max
+	
+     	bool aiProche = false;
+        for (auto ai : aiPlayers) {
+            float dx = ai->getLocation().x - playerHumain->getLocation().x;
+            float dz = ai->getLocation().z - playerHumain->getLocation().z;
+            float distSq = dx*dx + dz*dz;
+
+            if (distSq < 800.0f) { // rayon de proximité (20 unités ici)
+                aiProche = true;
+                break;
+            }
+        }
+
+        if (!aiProche) return; // pas de passe si aucun IA proche
+
+        // Trouver le joueur humain le plus proche (autre que playerHumain)
+        robot* targetHuman   = nullptr;
+        float minDistToPorteur  = FLT_MAX; // score = distance minimale à l’IA la plus proche
+		
+        for (auto h : humanPlayers) {
+            if (h == playerHumain) continue; // pas se passer à soi-même
+		
+		float minDistToAI = FLT_MAX;
+            for (auto ai : aiPlayers) {
+            float dx = h->getLocation().x - ai->getLocation().x;
+            float dz = h->getLocation().z - ai->getLocation().z;
+            float distSq = dx*dx + dz*dz;
+
+            if (distSq < minDistToAI) {
+                    minDistToAI = distSq;
+                }
+        }
+		if (minDistToAI > 500.0f) {
+                float dxP = h->getLocation().x - playerHumain->getLocation().x;
+                float dzP = h->getLocation().z - playerHumain->getLocation().z;
+                float distPorteurSq = dxP*dxP + dzP*dzP;
+                
+                if (distPorteurSq < minDistToPorteur) {
+                    minDistToPorteur = distPorteurSq;
+                    targetHuman = h;
+                }
+            }
+        }
+
+   if (targetHuman)  {
+            D3DXVECTOR3 dir = targetHuman->getLocation() - playerHumain->getLocation();
+            D3DXVec3Normalize(&dir, &dir);
+
+            float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+			float hauteur = puissancePasse / 3.0f + r * 3.0f;
+
+            D3DXVECTOR3 passe = dir * puissancePasse;
+            passe.y = hauteur;
+
+            b->setVelocity(passe);
+            playerHumain->sethastheball(false);
+            playerHumain->setTirer(true);
+
+            passeCooldown = 50.0f;
+            puissancePasse = 0.0f;
+        }
     }
-
-    // Relâchement de la touche = tir
-    if (!KEY_DOWN(VK_LCONTROL) && chargingPasse)
-    {
-    	balleSound->SetCurrentPosition(0);
-        balleSound->Play(0, 0, 0);
-        chargingPasse = false;
-
-        D3DXVECTOR3 direction(0, 0, 0);
-		
-        if (KEY_DOWN(VK_UP))    direction.x += 1.0f;
-		if (KEY_DOWN(VK_DOWN))  direction.x -= 1.0f;
-		if (KEY_DOWN(VK_LEFT))  direction.z -= 1.0f;
-		if (KEY_DOWN(VK_RIGHT)) direction.z += 1.0f;
-		
-		if (D3DXVec3Length(&direction) > 0.1f)
-        D3DXVec3Normalize(&direction, &direction);
-
-        // Hauteur ajoutée (forme lob)
-        float baseHauteur = puissancePasse / 3.0f;
-		float variation = static_cast<float>(std::rand()) / RAND_MAX;
-		float hauteur = baseHauteur + variation * 3.0f; // Ajoute une variation entre 0 et 2
-        D3DXVECTOR3 passe = direction * puissancePasse;
-        passe.y = hauteur;
-
-        // Appliquer à la balle
-        b->setVelocity(passe);
-
-        // Libérer la balle
-        player->sethastheball(false);
-        player->setTirer(true);
 
         // Cooldown
-        passeCooldown = 50.0f;
-        puissancePasse = 0.0f;
-    }
+    
 }
 	
 	void together::tirer(robot* player)
@@ -2176,7 +2203,7 @@ void together::passer(robot* player)
 		
 		if (D3DXVec3Length(&direction) > 0.1f)
         D3DXVec3Normalize(&direction, &direction);
-
+		
         // Hauteur ajoutée (forme lob)
         float baseHauteur = puissancePasse / 3.0f;
 		float variation = static_cast<float>(std::rand()) / RAND_MAX;
@@ -2667,3 +2694,22 @@ void together::loadSupporters(LPDIRECT3DDEVICE9 d3ddev)
 	
 }
 
+std::vector<robot*> together:: playerInstance()
+{
+	return player;
+}
+
+std::vector<robot*> together:: playerInstanceAI()
+{
+	return playerAI;
+}
+
+balle * together::getBalle()
+{
+	return b;
+}
+
+void together::setNumberSupporters(int s)
+{
+	numberSupport=s;
+}

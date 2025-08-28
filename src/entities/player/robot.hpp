@@ -15,6 +15,7 @@ class robot
 		
 		robot(D3DXVECTOR3 pos,LPDIRECT3DDEVICE9 d3ddev,float r,D3DXVECTOR3 col);
 		~robot();
+		 
 		void init_graphics(	LPDIRECT3DDEVICE9 d3ddev);
 		void update(D3DXVECTOR3 translation);
 		void setRotate(float r);
@@ -97,6 +98,7 @@ class robot
 		bool tirer;	
 		float speed;	
 		float ballPickupCooldown = 0.0f;
+		
 };
 
 #endif

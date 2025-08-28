@@ -7,7 +7,7 @@ robot::robot(D3DXVECTOR3 pos,LPDIRECT3DDEVICE9 d3ddev,float r,D3DXVECTOR3 col)
 	rot=r;
 	color=col;
 	position=pos;
-	speed=1.3f;
+	speed=1.5f;
 }
 
 robot::~robot()
@@ -368,5 +368,4 @@ bool robot::getTirer()
 		 	speed=s;
 		 }
 		 
-	
 

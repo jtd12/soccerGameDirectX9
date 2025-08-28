@@ -88,8 +88,8 @@
 
     D3DMATERIAL9 shadowMat;
     ZeroMemory(&shadowMat, sizeof(shadowMat));
-    shadowMat.Diffuse = D3DXCOLOR(0.0, 0.0, 0.0, 0.15f);
-    shadowMat.Ambient = shadowMat.Diffuse;
+    shadowMat.Diffuse = D3DXCOLOR(0.0, 0.0, 0.0, 0.12f);
+    shadowMat.Ambient = D3DXCOLOR(0.1, 0.1, 0.1, 0.1f);
     d3ddev->SetMaterial(&shadowMat);
    
 	d3ddev->SetRenderState(D3DRS_ZENABLE, TRUE);

@@ -7,6 +7,8 @@
 #include <d3dx9.h>
 #include<vector>
 #include <sstream>
+#include <cstdlib> // pour rand()
+#include <ctime>   // pour srand(time(0)) si nécessaire
 #include<iostream>
 #define SCREEN_WIDTH 960 
 #define SCREEN_HEIGHT 540
@@ -38,7 +40,8 @@ class together
 	void movementBall();
 	void collision();
 	void collisionAI();
-	void passer(robot* player);
+	void passer(robot* playerHumain, const std::vector<robot*>& aiPlayers, const std::vector<robot*>& humanPlayers);
+	bool checkTouche(D3DXVECTOR3 posBall, float terrainMinX, float terrainMaxX);
 	void tirer(robot* player);
 	void tirerAI(robot* playerAI);
 	void collisionStadePlayer(robot* player);
@@ -66,6 +69,10 @@ class together
 	D3DXVECTOR3 getUp();
 	void loadCameraMatrix(LPDIRECT3DDEVICE9 d3ddev);
 	void goal_();
+	std::vector<robot*> playerInstance();
+	std::vector<robot*> playerInstanceAI();
+	balle* getBalle();
+	void setNumberSupporters(int s);
 	
 	private:
 	float delay;
@@ -100,5 +107,6 @@ class together
     bool chargingPasse;
     LPDIRECTSOUNDBUFFER balleSound = nullptr;
 	sound* son;
+	
 };
 #endif

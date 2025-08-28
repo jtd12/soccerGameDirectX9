@@ -39,6 +39,7 @@ class balle
 		void  centrerCoteArriereDroite_(bool c);
 		void  centrerCoteGauche_(bool c);
 		void  centrerCoteDroit_(bool c);
+		void setGravity(float s);
 		
 	private:
 		LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
@@ -50,6 +51,7 @@ class balle
 		D3DXMATRIX matTranslateFinal; 
 		D3DXVECTOR3 position;
 		D3DXVECTOR3 velocity;
+		float gravity;
 		LPDIRECT3DTEXTURE9* texture;    // a pointer to a texture
 		bool centrer,centreravant,centrercotedroit,centrercotegauche,centrerarriere,centrercotearrieredroit,centrercotearrieregauche;
 };
