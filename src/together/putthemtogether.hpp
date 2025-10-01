@@ -19,6 +19,8 @@
 #include"../entities/skybox/skybox.hpp"
 #include"../entities/supporter/supporter.hpp"
 #include"../passLogic/passsystem.hpp"
+#include <dinput.h>
+#include <tchar.h>
 #include <cstdlib>  // pour rand() et srand()
 #include <ctime>    // pour time()
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
@@ -31,7 +33,7 @@ class together
 		
 	together(LPDIRECT3DDEVICE9 d3ddev,HWND hwnd);
 	~together();
-	void update(LPDIRECT3DDEVICE9 d3ddev);
+	void update(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,LPDIRECT3DDEVICE9 d3ddev);
 	void draw(LPDIRECT3DDEVICE9 d3ddev, LPD3DXFONT dxfont);
 	
 	void prepareTeams();
@@ -47,20 +49,13 @@ class together
 	void collisionStadePlayer(robot* player);
 	void collisionStadePlayerAI(robot* playerAI);
 	void collisionStadeBall(balle* b);
-	void follow();
+	void follow(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick);
 	void followAI();
 	void camFollowBall(LPDIRECT3DDEVICE9 d3ddev);
 	void separatePlayer();
 	void separatePlayerAI();
+	void input(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* p);
 	void input(robot* p);
-	void input2();
-	void input3();
-	void input4();
-	void input5();
-	void input6();
-	void input7();
-	void input8();
-	void input9();
 	void loadCinematik1();
 	void movementGoal();
 	void loadSupporters(LPDIRECT3DDEVICE9 d3ddev);

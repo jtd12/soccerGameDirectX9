@@ -128,10 +128,10 @@ void setup::init_Light()
 }
 
 
-void setup::update()
+void setup::update(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick)
 {
 
-p->update(d3ddev);
+p->update(js,g_pJoystick,d3ddev);
 /*
 for(int i=0;i<player.size();i++)
 	   player[i]->setRotate(0.05f);

@@ -23,7 +23,7 @@ class setup
 	void Clear(D3DCOLOR color);
 	void begin();
 	void end();
-	void update();
+	void update(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick);
 	void present();
 	void render_frame();
 	void init_Light();

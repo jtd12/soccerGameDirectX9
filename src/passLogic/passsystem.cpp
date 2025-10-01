@@ -170,11 +170,11 @@ void pass::PasserAI(std::vector<robot*>playerAI,robot* player, float xmin, float
 			    D3DXVec3Normalize(&directionPasse, &directionPasse);
 			}
         
-                float puissancePasse = 30.0f;
+                float puissancePasse = 12.0f;
 
 				    // Génère une hauteur aléatoire (entre 2.0 et 5.0 par exemple)
 				float variation = static_cast<float>(std::rand()) / RAND_MAX;
-				float hauteur = 2.0f + variation * 30.0f; // entre 2.0 et 5.0
+				float hauteur = 2.0f + variation * 15.0f; // entre 2.0 et 5.0
 				
 				// Ajoute la composante Y pour la hauteur
 				D3DXVECTOR3 vitessePasse(

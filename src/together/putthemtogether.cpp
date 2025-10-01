@@ -232,7 +232,7 @@ bool together::checkTouche(D3DXVECTOR3 posBall, float terrainMinX, float terrain
     return (posBall.x < terrainMinX || posBall.x > terrainMaxX);
 }
 
-void together::update(LPDIRECT3DDEVICE9 d3ddev)
+void together::update(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,LPDIRECT3DDEVICE9 d3ddev)
 {
 	float deltaTime = 0.5f;
 	skybox->update();
@@ -349,6 +349,7 @@ if(miTemps>=2)
 	tirer(player[8]);
 	tirer(player[9]);
 	
+	
 	tirerAI(playerAI[0]);
 	tirerAI(playerAI[1]);
 	tirerAI(playerAI[2]);
@@ -360,8 +361,8 @@ if(miTemps>=2)
 	tirerAI(playerAI[8]);
 	tirerAI(playerAI[9]);
 	
-	follow();
-	followAI();
+	follow(js,g_pJoystick);
+	//followAI();
 	b->update();
 	collisionStadePlayer(player[0]);
 	collisionStadePlayer(player[1]);
@@ -391,7 +392,8 @@ if(miTemps>=2)
     r->updateBallCooldown(deltaTime);
 }
 	
-	p->update( b, player, playerAI);
+	//p->update( b, player, playerAI);
+	
 /*	p->update(b,playerAI[0],80,-700,100,-150,4,9,player,playerAI);
 	p->update(b,playerAI[1],80,-700,100,-150,6,9,player,playerAI);
 	p->update(b,playerAI[2],80,-700,100,-150,3,9,player,playerAI);
@@ -809,6 +811,56 @@ void together::movementAI()
 }
 
 
+void together::input(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* p)
+{
+		    // Lire l’état du joystick
+	if (SUCCEEDED(g_pJoystick->GetDeviceState(sizeof(DIJOYSTATE), &js)))
+	{
+    float speed = 0.2f;      // vitesse de déplacement
+    float rotSpeed = 0.05f;  // vitesse de rotation
+    int deadzone = 200;      // zone morte pour éviter les tremblements
+
+    // --- Stick gauche : mouvement ---
+    LONG lx = js.lX; // axe horizontal
+    LONG ly = js.lY; // axe vertical
+
+    if (abs(lx) > deadzone)
+    {
+        if (lx < 0) {
+            // Stick droit ? avancer à droite
+            p->update(D3DXVECTOR3(speed, 0, 0));
+            p->setRot(1.5f); // exemple rotation
+            printf("Droite\n");
+        }
+        else {
+            // Stick gauche ? avancer à gauche
+            p->update(D3DXVECTOR3(-speed, 0, 0));
+            p->setRot(-1.5f);
+            printf("Gauche\n");
+        }
+    }
+
+	
+	if (abs(ly) > deadzone)
+    {
+        if (ly < 0) {
+            // Stick droit ? avancer à droite
+            p->update(D3DXVECTOR3(0, 0, speed));
+            p->setRot(3.0f); // exemple rotation
+            printf("Droite\n");
+        }
+        else {
+            // Stick gauche ? avancer à gauche
+            p->update(D3DXVECTOR3(0, 0, -speed));
+            p->setRot(0.0f);
+            printf("Gauche\n");
+        }
+    }
+}
+    
+   
+}
+
 void together::input(robot* p)
 {
 	
@@ -962,7 +1014,7 @@ for (int i = 0; i < playerAI.size(); i++)
 	
 }
 
-void together::follow()
+void together::follow(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick)
 {//si joueur proche de lennemi alors suivre ennemi
 	D3DXVECTOR3 Distance = player[0]->getLocation()-b->getLocation();
 	D3DXVECTOR3 Distance2 = player[1]->getLocation()-b->getLocation();
@@ -1114,6 +1166,7 @@ if(hyp1<=hyp2 && hyp1<=hyp3 && hyp1<=hyp4 && hyp1<=hyp5 && hyp1<=hyp6  && hyp1<=
 {
 
 	input(player[0]);
+	input(js,g_pJoystick,player[0]);
 
 									//	input();
 										
@@ -1123,6 +1176,7 @@ if(player[1]->getNext())
 {
 
 	input(player[1]);
+	input(js,g_pJoystick,player[1]);
 
 									//	input2();
 										
@@ -1131,6 +1185,7 @@ if(player[2]->getNext())
 {
 
 	input(player[2]);
+	input(js,g_pJoystick,player[2]);
 
 									//	input3();
 										
@@ -1140,6 +1195,7 @@ if(player[3]->getNext())
 
 
 	input(player[3]);
+	input(js,g_pJoystick,player[3]);
 									//	input4();
 										
 }
@@ -1147,6 +1203,7 @@ if(player[4]->getNext())
 {
 
 	input(player[4]);
+	input(js,g_pJoystick,player[4]);
 
 									//	input5();
 										
@@ -1155,6 +1212,7 @@ if(player[5]->getNext())
 {
 
 	input(player[5]);
+	input(js,g_pJoystick,player[5]);
 
 									//	input6();
 										
@@ -1163,6 +1221,7 @@ if(player[6]->getNext())
 {
 
 	input(player[6]);
+	input(js,g_pJoystick,player[6]);
 
 									//	input7();
 										
@@ -1172,6 +1231,7 @@ if(player[7]->getNext())
 
 
 	input(player[7]);
+	input(js,g_pJoystick,player[7]);
 									//	input8();
 										
 }
@@ -1179,6 +1239,7 @@ if(player[8]->getNext())
 {
 
 	input(player[8]);
+	input(js,g_pJoystick,player[8]);
 
 									//	input9();
 										
@@ -1189,57 +1250,68 @@ if(player[9]->getNext())
 
 
 	input(player[9]);
+	input(js,g_pJoystick,player[9]);
 									
 }
    
 if(player[0]->gethastheball())
 {
 	input(player[0]);
+	input(js,g_pJoystick,player[0]);
 }
 	
 if(player[1]->gethastheball())
 {
 	input(player[1]);
+	input(js,g_pJoystick,player[1]);
 }
 	
 if(player[2]->gethastheball())
 {
 	input(player[2]);
+	input(js,g_pJoystick,player[2]);
 }
 	
 if(player[3]->gethastheball())
 {
 	input(player[3]);
+	input(js,g_pJoystick,player[3]);
 }
 	
 if(player[4]->gethastheball())
 {
 	input(player[4]);
+	input(js,g_pJoystick,player[4]);
 }
 	
 if(player[5]->gethastheball())
 {
 	input(player[5]);
+	input(js,g_pJoystick,player[5]);
 }
 	
 if(player[6]->gethastheball())
 {
 	input(player[6]);
+	input(js,g_pJoystick,player[6]);
 }
 	
 if(player[7]->gethastheball())
 {
 	input(player[7]);
+	input(js,g_pJoystick,player[7]);
 }
 	
 if(player[8]->gethastheball())
 {
 	input(player[8]);
+	input(js,g_pJoystick,player[8]);
 }
 	
 if(player[9]->gethastheball())
 {
 	input(player[9]);
+	input(js,g_pJoystick,player[9]);
 }
 
 
@@ -2170,59 +2242,57 @@ void together::passer(robot* playerHumain, const std::vector<robot*>& aiPlayers,
 	
 	void together::tirer(robot* player)
 {
+	static float passeCooldown = 0.0f;  
 
-	    static float passeCooldown = 0.0f;  // Cooldown de la passe
-
-    // Mise à jour du cooldown
-   // Cooldown
     if (passeCooldown > 0.0f)
         passeCooldown -= 1.0f;
 
     if (!player->gethastheball()) return;
 
-    // Début de charge si la touche est enfoncée
+    // Charge du tir
     if (KEY_DOWN(VK_RCONTROL) && passeCooldown <= 0.0f)
     {
         chargingPasse = true;
-        puissancePasse += 80.0f;
-        if (puissancePasse > 950.0f) puissancePasse = 950.0f; // Limite max
+        puissancePasse += 3.0f;
+        if (puissancePasse > 95.0f) puissancePasse = 19.0f;
     }
 
-    // Relâchement de la touche = tir
+    // Tir
     if (!KEY_DOWN(VK_RCONTROL) && chargingPasse)
     {
-    	balleSound->SetCurrentPosition(0);
+        balleSound->SetCurrentPosition(0);
         balleSound->Play(0, 0, 0);
         chargingPasse = false;
-		D3DXVECTOR3 direction(0, 0, 0);
-		
-        if (KEY_DOWN(VK_UP))    direction.x += 1.0f;
-		if (KEY_DOWN(VK_DOWN))  direction.x -= 1.0f;
-		if (KEY_DOWN(VK_LEFT))  direction.z -= 1.0f;
-		if (KEY_DOWN(VK_RIGHT)) direction.z += 1.0f;
-		
-		if (D3DXVec3Length(&direction) > 0.1f)
-        D3DXVec3Normalize(&direction, &direction);
-		
-        // Hauteur ajoutée (forme lob)
+
+        // Position du but adverse (à adapter selon ton terrain !)
+        D3DXVECTOR3 goalPos = D3DXVECTOR3(90,0,0);
+        D3DXVECTOR3 playerPos = player->getLocation();
+
+        // Calcul direction
+        D3DXVECTOR3 direction = goalPos - playerPos;
+        direction.y = 0.0f;
+        if (D3DXVec3Length(&direction) > 0.001f) {
+            D3DXVec3Normalize(&direction, &direction);
+        } else {
+            direction = D3DXVECTOR3(1,0,0); // direction par défaut
+        }
+
+        // Hauteur (lob)
         float baseHauteur = puissancePasse / 3.0f;
-		float variation = static_cast<float>(std::rand()) / RAND_MAX;
-		float hauteur = baseHauteur + variation * 2.0f; // Ajoute une variation entre 0 et 2
+        float variation = static_cast<float>(std::rand()) / RAND_MAX;
+        float hauteur = baseHauteur + variation * 2.0f;
+
         D3DXVECTOR3 passe = direction * puissancePasse;
         passe.y = hauteur;
 
-        // Appliquer à la balle
+        // Tirer la balle
         b->setVelocity(passe);
-
-        // Libérer la balle
         player->sethastheball(false);
         player->setTirer(true);
 
-        // Cooldown
         passeCooldown = 50.0f;
         puissancePasse = 0.0f;
     }
-			
 	}
 	
 	void together::tirerAI(robot* playerAI)
@@ -2259,150 +2329,63 @@ void together::passer(robot* playerHumain, const std::vector<robot*>& aiPlayers,
 	void together::separatePlayer()
 {
 		
-		  D3DXVECTOR3 Distance = D3DXVECTOR3(player[0]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance2 = D3DXVECTOR3(player[1]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance3 = D3DXVECTOR3(player[2]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance4 = D3DXVECTOR3(player[3]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance5 = D3DXVECTOR3(player[4]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance6 = D3DXVECTOR3(player[5]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance7 = D3DXVECTOR3(player[6]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance8 = D3DXVECTOR3(player[7]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance9 = D3DXVECTOR3(player[8]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance10 = D3DXVECTOR3(player[9]->getLocation()-b->getLocation());
+	float minDistance = 15.0f;   // distance minimum de séparation
+    float pushFactor  = .8f;    // force de poussée (ajuste pour plus ou moins fort)
 
-float hypotenuse = sqrt((Distance.x * Distance.x) + (Distance.z * Distance.z));
-float hypotenuse2 = sqrt((Distance2.x * Distance2.x) + (Distance2.z * Distance2.z));
-float hypotenuse3 = sqrt((Distance3.x * Distance3.x) + (Distance3.z * Distance3.z));
-float hypotenuse4 = sqrt((Distance4.x * Distance4.x) + (Distance4.z * Distance4.z));
-float hypotenuse5 = sqrt((Distance5.x * Distance5.x) + (Distance5.z * Distance5.z));
-float hypotenuse6 = sqrt((Distance6.x * Distance6.x) + (Distance6.z * Distance6.z));
-float hypotenuse7 = sqrt((Distance7.x * Distance7.x) + (Distance7.z * Distance7.z));
-float hypotenuse8 = sqrt((Distance8.x * Distance8.x) + (Distance8.z * Distance8.z));
-float hypotenuse9 = sqrt((Distance9.x * Distance9.x) + (Distance9.z * Distance9.z));
-float hypotenuse10 = sqrt((Distance10.x * Distance10.x) + (Distance10.z * Distance10.z));
+    for (int i = 0; i < player.size(); i++) {
+        D3DXVECTOR3 posI = player[i]->getLocation();
+        D3DXVECTOR3 separation(0, 0, 0);
 
-for(int i=0;i<player.size();i++)
-{
+        for (int j = 0; j < player.size(); j++) {
+            if (i == j) continue;
 
-											if(player[i]->gethastheball()==true && player[0]->gethastheball()==false && hypotenuse<10)
-											{
-												player[0]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[1]->gethastheball()==false&& hypotenuse2<10)
-											{
-												player[1]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[2]->gethastheball()==false&& hypotenuse3<10)
-											{
-												player[2]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[3]->gethastheball()==false&& hypotenuse4<10)
-											{
-												player[3]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[4]->gethastheball()==false&& hypotenuse5<10)
-											{
-												player[4]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[5]->gethastheball()==false&& hypotenuse6<10)
-											{
-												player[5]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[6]->gethastheball()==false&& hypotenuse7<10)
-											{
-												player[6]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[7]->gethastheball()==false&& hypotenuse8<10)
-											{
-												player[7]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[8]->gethastheball()==false&& hypotenuse9<10)
-											{
-												player[8]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-													if(player[i]->gethastheball()==true && player[9]->gethastheball()==false && hypotenuse10<10)
-											{
-												player[9]->setLocationincremente(D3DXVECTOR3(-5.5,0,5.5));
-											}
-										}
-										
-										
+            D3DXVECTOR3 dir = posI - player[j]->getLocation();
+            float dist = sqrt(dir.x * dir.x + dir.z * dir.z);
 
+            if (dist < minDistance && dist > 0.001f) {
+                // Normaliser
+                dir /= dist;
+
+                // Plus ils sont proches, plus on pousse fort
+                float strength = (minDistance - dist) * pushFactor;
+                separation += dir * strength;
+            }
+        }
+
+        // Appliquer la séparation calculée
+        player[i]->setLocationincremente(separation);
+    }
 
 }
 
 void together::separatePlayerAI()
 {
-		D3DXVECTOR3 Distance = D3DXVECTOR3(playerAI[0]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance2 = D3DXVECTOR3(playerAI[1]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance3 = D3DXVECTOR3(playerAI[2]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance4 = D3DXVECTOR3(playerAI[3]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance5 = D3DXVECTOR3(playerAI[4]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance6 = D3DXVECTOR3(playerAI[5]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance7 = D3DXVECTOR3(playerAI[6]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance8 = D3DXVECTOR3(playerAI[7]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance9 = D3DXVECTOR3(playerAI[8]->getLocation()-b->getLocation());
-		  D3DXVECTOR3 Distance10 = D3DXVECTOR3(playerAI[9]->getLocation()-b->getLocation());
+		float minDistance = 15.0f;   // distance minimum de séparation
+    float pushFactor  = .8f;    // force de poussée (ajuste pour plus ou moins fort)
 
-float hypotenuse = sqrt((Distance.x * Distance.x) + (Distance.z * Distance.z));
-float hypotenuse2 = sqrt((Distance2.x * Distance2.x) + (Distance2.z * Distance2.z));
-float hypotenuse3 = sqrt((Distance3.x * Distance3.x) + (Distance3.z * Distance3.z));
-float hypotenuse4 = sqrt((Distance4.x * Distance4.x) + (Distance4.z * Distance4.z));
-float hypotenuse5 = sqrt((Distance5.x * Distance5.x) + (Distance5.z * Distance5.z));
-float hypotenuse6 = sqrt((Distance6.x * Distance6.x) + (Distance6.z * Distance6.z));
-float hypotenuse7 = sqrt((Distance7.x * Distance7.x) + (Distance7.z * Distance7.z));
-float hypotenuse8 = sqrt((Distance8.x * Distance8.x) + (Distance8.z * Distance8.z));
-float hypotenuse9 = sqrt((Distance9.x * Distance9.x) + (Distance9.z * Distance9.z));
-float hypotenuse10 = sqrt((Distance10.x * Distance10.x) + (Distance10.z * Distance10.z));
-	
+    for (int i = 0; i < playerAI.size(); i++) {
+        D3DXVECTOR3 posI = playerAI[i]->getLocation();
+        D3DXVECTOR3 separation(0, 0, 0);
 
-for(int i=0;i<playerAI.size();i++)
-{
+        for (int j = 0; j < playerAI.size(); j++) {
+            if (i == j) continue;
 
-											if(playerAI[i]->gethastheball()==true && playerAI[0]->gethastheball()==false && hypotenuse<10)
-											{
-												playerAI[0]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[1]->gethastheball()==false&& hypotenuse2<10)
-											{
-												playerAI[1]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[2]->gethastheball()==false&& hypotenuse3<10)
-											{
-												playerAI[2]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[3]->gethastheball()==false&& hypotenuse4<10)
-											{
-												playerAI[3]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[4]->gethastheball()==false&& hypotenuse5<10)
-											{
-												playerAI[4]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[5]->gethastheball()==false&& hypotenuse6<10)
-											{
-												playerAI[5]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[6]->gethastheball()==false&& hypotenuse7<10)
-											{
-												playerAI[6]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[7]->gethastheball()==false&& hypotenuse8<10)
-											{
-												playerAI[7]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[8]->gethastheball()==false&& hypotenuse9<10)
-											{
-												playerAI[8]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-													if(playerAI[i]->gethastheball()==true && playerAI[9]->gethastheball()==false && hypotenuse10<10)
-											{
-												playerAI[9]->setLocationincremente(D3DXVECTOR3(-15.5,0,15.5));
-											}
-										}
-										
-										
+            D3DXVECTOR3 dir = posI - playerAI[j]->getLocation();
+            float dist = sqrt(dir.x * dir.x + dir.z * dir.z);
 
+            if (dist < minDistance && dist > 0.001f) {
+                // Normaliser
+                dir /= dist;
+
+                // Plus ils sont proches, plus on pousse fort
+                float strength = (minDistance - dist) * pushFactor;
+                separation += dir * strength;
+            }
+        }
+
+        // Appliquer la séparation calculée
+        playerAI[i]->setLocationincremente(separation);
+    }
 
 }
 
