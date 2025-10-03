@@ -40,10 +40,12 @@ class together
 	void movement();
 	void movementAI();
 	void movementBall();
-	void collision();
+	void collision(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick);
 	void collisionAI();
 	void passer(robot* playerHumain, const std::vector<robot*>& aiPlayers, const std::vector<robot*>& humanPlayers);
+	void passer(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* playerHumain, const std::vector<robot*>& aiPlayers, const std::vector<robot*>& humanPlayers);
 	bool checkTouche(D3DXVECTOR3 posBall, float terrainMinX, float terrainMaxX);
+	void tirer(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* player);
 	void tirer(robot* player);
 	void tirerAI(robot* playerAI);
 	void collisionStadePlayer(robot* player);
