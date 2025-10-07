@@ -317,7 +317,7 @@ if(miTemps>=2)
 	minNumberSupport=150;
 	camFollowBall( d3ddev);
 	temps+=0.01f;
-	collision(js,g_pJoystick);
+	collision();
 	collisionAI();
 	movementBall();
 	movement();
@@ -325,6 +325,13 @@ if(miTemps>=2)
 	movementGoal();
 	separatePlayer();
 	separatePlayerAI();
+	
+	if (g_pJoystick != NULL) {
+    if (SUCCEEDED(g_pJoystick->Poll()) &&
+        SUCCEEDED(g_pJoystick->GetDeviceState(sizeof(DIJOYSTATE), &js))) {
+        // Utilisation joystick ici
+	collision(js,g_pJoystick);
+	follow(js,g_pJoystick);
 	
 	passer(js,g_pJoystick,player[0],playerAI,player);
 	passer(js,g_pJoystick,player[1],playerAI,player);
@@ -336,6 +343,19 @@ if(miTemps>=2)
 	passer(js,g_pJoystick,player[7],playerAI,player);
 	passer(js,g_pJoystick,player[8],playerAI,player);
 	passer(js,g_pJoystick,player[9],playerAI,player);
+	
+	tirer(js,g_pJoystick,player[0]);
+	tirer(js,g_pJoystick,player[1]);
+	tirer(js,g_pJoystick,player[2]);
+	tirer(js,g_pJoystick,player[3]);
+	tirer(js,g_pJoystick,player[4]);
+	tirer(js,g_pJoystick,player[5]);
+	tirer(js,g_pJoystick,player[6]);
+	tirer(js,g_pJoystick,player[7]);
+	tirer(js,g_pJoystick,player[8]);
+	tirer(js,g_pJoystick,player[9]);
+}
+}
 	
 	passer(player[0],playerAI,player);
 	passer(player[1],playerAI,player);
@@ -349,16 +369,7 @@ if(miTemps>=2)
 	passer(player[9],playerAI,player);
 	
 	
-	tirer(js,g_pJoystick,player[0]);
-	tirer(js,g_pJoystick,player[1]);
-	tirer(js,g_pJoystick,player[2]);
-	tirer(js,g_pJoystick,player[3]);
-	tirer(js,g_pJoystick,player[4]);
-	tirer(js,g_pJoystick,player[5]);
-	tirer(js,g_pJoystick,player[6]);
-	tirer(js,g_pJoystick,player[7]);
-	tirer(js,g_pJoystick,player[8]);
-	tirer(js,g_pJoystick,player[9]);
+
 	
 	tirer(player[0]);
 	tirer(player[1]);
@@ -383,7 +394,7 @@ if(miTemps>=2)
 	tirerAI(playerAI[8]);
 	tirerAI(playerAI[9]);
 	
-	follow(js,g_pJoystick);
+	follow();
 	followAI();
 	b->update();
 	collisionStadePlayer(player[0]);
@@ -501,6 +512,51 @@ std::string scoreTxt = ss2.str();
                       &textbox3,
                       DT_CENTER | DT_VCENTER,
                       D3DCOLOR_ARGB(255, 255, 255, 255));
+     
+	 	
+	 // Vérifie si la balle est dans la zone du but
+	if (b->getLocation().x > 190.0f && b->getLocation().x < 194.5f &&
+	    b->getLocation().z > -15.0f && b->getLocation().z < 15.0f)
+	{
+	    if (!but) // pour éviter de redéclencher à chaque frame
+	    {
+	        but = true;
+	        goalStartTime = GetTickCount(); // sauvegarde l'heure du but
+	    }
+	}             
+    
+    if(b->getLocation().x<-180 && b->getLocation().x>-184.5f && b->getLocation().z>-15 && b->getLocation().z<15)
+	{
+		if (!but) // pour éviter de redéclencher à chaque frame
+	    {
+	        but = true;
+	        goalStartTime = GetTickCount(); // sauvegarde l'heure du but
+	    }
+    }
+    
+    if (but)
+	{
+	    DWORD currentTime = GetTickCount();
+	    DWORD elapsed = currentTime - goalStartTime;
+	
+	    if (elapsed < 5000) // 5 secondes
+	    {
+	        RECT textbox;
+	        SetRect(&textbox, 300, 0, 700, 480); // centre de l'écran
+	        dxfont->DrawTextA(
+	            NULL,
+	            "GOAL !!!!",
+	            -1,
+	            &textbox,
+	            DT_CENTER | DT_VCENTER,
+	            D3DCOLOR_ARGB(255, 255, 255, 0) // jaune/blanc vif
+	        );
+	    }
+	    else
+	    {
+	        but = false; // cacher le message après 5 secondes
+	    }
+	}
                       
                       
 }
@@ -838,8 +894,7 @@ void together::input(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* p)
 		    // Lire l’état du joystick
 	if (SUCCEEDED(g_pJoystick->GetDeviceState(sizeof(DIJOYSTATE), &js)))
 	{
-    float speed = 0.2f;      // vitesse de déplacement
-    float rotSpeed = 0.05f;  // vitesse de rotation
+
     int deadzone = 200;      // zone morte pour éviter les tremblements
 
     // --- Stick gauche : mouvement ---
@@ -891,7 +946,7 @@ void together::input(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* p)
 	else if(lz < deadzone && KEY_DOWN(VK_SHIFT)==false)
 	{
 		
-	speedPlayer=0.2;
+	speedPlayer=0.25f;
 	
 	}
 	
@@ -982,6 +1037,105 @@ void together::input(robot* p)
 
 }
 
+void together::collision()
+{
+static int tirCooldown = 0;
+
+
+    int deadzone = 200;
+
+    for (int i = 0; i < player.size(); i++) {
+        bool collisionAvecBalle = false;
+
+        // 1?? Vérifier si un joueur IA a la balle
+        robot* aiWithBall = nullptr;
+        for (auto& ai : playerAI) {
+            if (ai->gethastheball()) {
+                aiWithBall = ai;
+                break;
+            }
+        }
+
+        // 2?? Si une IA a la balle, on vérifie la tentative d'interception
+        if (aiWithBall) {
+            float distToAI = distance3D(
+                player[i]->getLocation().x, player[i]->getLocation().y, player[i]->getLocation().z,
+                aiWithBall->getLocation().x, aiWithBall->getLocation().y, aiWithBall->getLocation().z);
+
+            bool boutonInterception =  KEY_DOWN('R'); 
+            // ?? ici j’ai pris le bouton B (index 1) ou la touche E clavier comme bouton d’interception
+
+            if (distToAI < 15.0f && boutonInterception) {
+                // Interception réussie
+                player[i]->sethastheball(true);
+                player[i]->setTirer(false);
+                aiWithBall->sethastheball(false);
+
+                speedTirAI = false;
+                speedTirGoal = false;
+                speedTirGoal2 = false;
+                p->setTir(false);
+
+                collisionAvecBalle = true;
+            }
+        }
+        else
+        {
+            // 3?? Si aucune IA n’a la balle ? prise auto
+            float d = distance3D(
+                player[i]->getLocation().x, player[i]->getLocation().y, player[i]->getLocation().z,
+                b->getLocation().x, b->getLocation().y, b->getLocation().z);
+
+            if (d < 10.0f && !player[i]->getTirer()) {
+                player[i]->sethastheball(true);
+                player[i]->setTirer(false);
+
+                speedTirGoal = false;
+                speedTirAI = false;
+                speedTirGoal2 = false;
+                p->setTir(false);
+
+                collisionAvecBalle = true;
+            }
+        }
+
+        // 4?? Si pas de collision, perte de la balle
+        if (!collisionAvecBalle) {
+            player[i]->sethastheball(false);
+        }
+
+        // Si le joueur a la balle, on colle la balle devant lui selon la direction
+        if (player[i]->gethastheball()) {
+            D3DXVECTOR3 pos = player[i]->getLocation();
+   
+
+            if (KEY_DOWN(VK_UP)) {
+                b->setLocation(D3DXVECTOR3(pos.x + 4.4f, b->getLocation().y, pos.z));
+            } else if (KEY_DOWN(VK_DOWN)) {
+                b->setLocation(D3DXVECTOR3(pos.x - 4.4f, b->getLocation().y, pos.z));
+            } else if (KEY_DOWN(VK_RIGHT)) {
+                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z + 2.4f));
+            } else if (KEY_DOWN(VK_LEFT)) {
+                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z - 2.4f));
+            } else {
+                // Position par défaut (gauche du joueur)
+                b->setLocation(D3DXVECTOR3(pos.x - 6.5f, b->getLocation().y, pos.z));
+            }
+        }
+    
+
+        // ? Réinitialisation de l’état "tirer" après 30 frames si le joueur ne possède plus la balle
+        if (!player[i]->gethastheball() && player[i]->getTirer()) {
+            tirCooldown++;
+            if (tirCooldown > 30) {
+                player[i]->setTirer(false);
+                tirCooldown = 0;
+            }
+        }
+    }
+}
+
+
 void together::collision(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick)
 {
 static int tirCooldown = 0;
@@ -1061,13 +1215,13 @@ static int tirCooldown = 0;
 	        LONG ly = js.lY;
 
             if (KEY_DOWN(VK_UP) || ly < -deadzone) {
-                b->setLocation(D3DXVECTOR3(pos.x + 1.4f, b->getLocation().y, pos.z));
+                b->setLocation(D3DXVECTOR3(pos.x + 4.4f, b->getLocation().y, pos.z));
             } else if (KEY_DOWN(VK_DOWN) || ly > deadzone) {
-                b->setLocation(D3DXVECTOR3(pos.x - 0.4f, b->getLocation().y, pos.z));
+                b->setLocation(D3DXVECTOR3(pos.x - 4.4f, b->getLocation().y, pos.z));
             } else if (KEY_DOWN(VK_RIGHT) || lx > deadzone) {
-                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z + 0.4f));
+                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z + 2.4f));
             } else if (KEY_DOWN(VK_LEFT) || lx < -deadzone) {
-                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z - 0.4f));
+                b->setLocation(D3DXVECTOR3(pos.x, b->getLocation().y, pos.z - 2.4f));
             } else {
                 // Position par défaut (gauche du joueur)
                 b->setLocation(D3DXVECTOR3(pos.x - 6.5f, b->getLocation().y, pos.z));
@@ -1107,13 +1261,334 @@ for (int i = 0; i < playerAI.size(); i++)
 
         if (playerAI[i]->gethastheball() && p->getTir() == false && playerAI[i]->getTirer() == false && speedTirAI == false)
         {
-            b->setLocation(D3DXVECTOR3(playerAI[i]->getLocation().x - 1.5f, b->getLocation().y, playerAI[i]->getLocation().z));
-        }
+	    float offset = 2.0f;
+	    float rot = playerAI[i]->getRot(); // rotation Y en radians
+	
+	    float offsetX = cosf(rot) * offset;
+	    float offsetZ = -sinf(rot) * offset;
+	
+	    D3DXVECTOR3 targetPos(
+	        playerAI[i]->getLocation().x + offsetX,
+	        b->getLocation().y,
+	        playerAI[i]->getLocation().z + offsetZ
+	    );
+	
+	    D3DXVECTOR3 currentPos = b->getLocation();
+	    float lerpFactor = 0.5f;  // ajuste entre 0.1 et 0.5 selon fluidité désirée
+	    D3DXVECTOR3 newPos = currentPos + (targetPos - currentPos) * lerpFactor;
+	
+	    b->setLocation(newPos);
     }
+}
 		
 	
 	
 }
+
+
+void together::follow()
+{//si joueur proche de lennemi alors suivre ennemi
+	D3DXVECTOR3 Distance = player[0]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance2 = player[1]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance3 = player[2]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance4 = player[3]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance5 = player[4]->getLocation() - b->getLocation();
+	D3DXVECTOR3 Distance6 = player[5]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance7 = player[6]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance8 = player[7]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance9 = player[8]->getLocation()-b->getLocation();
+	D3DXVECTOR3 Distance10 = player[9]->getLocation()-b->getLocation();
+	float hyp1 = sqrt((Distance.x * Distance.x) + (Distance.z * Distance.z));
+	float hyp2 = sqrt((Distance2.x * Distance2.x) + (Distance2.z * Distance2.z));
+	float hyp3 = sqrt((Distance3.x * Distance3.x) + (Distance3.z * Distance3.z));
+	float hyp4 = sqrt((Distance4.x * Distance4.x) + (Distance4.z * Distance4.z));
+	float hyp5 = sqrt((Distance5.x * Distance5.x) + (Distance5.z * Distance5.z));
+	float hyp6 = sqrt((Distance6.x * Distance6.x) + (Distance6.z * Distance6.z));
+	float hyp7 = sqrt((Distance7.x * Distance7.x) + (Distance7.z * Distance7.z));
+	float hyp8 = sqrt((Distance8.x * Distance8.x) + (Distance8.z * Distance8.z));
+	float hyp9 = sqrt((Distance9.x * Distance9.x) + (Distance9.z * Distance9.z));
+	float hyp10 = sqrt((Distance10.x * Distance10.x) + (Distance10.z * Distance10.z));
+
+
+
+if(hyp1<=hyp2 && hyp1<=hyp3 && hyp1<=hyp4 && hyp1<=hyp5 && hyp1<=hyp6  && hyp1<=hyp7 && hyp1<=hyp8 && hyp1<=hyp9 && hyp1<=hyp10
+   )
+   {
+     
+    player[0]->setNext(true);
+  
+    
+     
+   }
+    else
+   {
+       player[0]->setNext(false);
+    
+   
+   }
+      if(hyp2<=hyp1 && hyp2<=hyp3 && hyp2<=hyp4 && hyp2<=hyp5 && hyp2<=hyp6 && hyp2<=hyp7 && hyp2<=hyp8 && hyp2<=hyp9 && hyp2<=hyp10
+      )
+   {
+     
+
+       player[1]->setNext(true);
+    
+    
+     
+   }
+   else
+   {
+       player[1]->setNext(false);
+   }
+   if(hyp3<=hyp1 && hyp3<=hyp2 && hyp3<=hyp4 && hyp3<=hyp5 && hyp3<=hyp6 && hyp3<=hyp7 && hyp3<=hyp8 && hyp3<=hyp9 && hyp3<=hyp10)
+   {
+      
+       player[2]->setNext(true);
+     
+   }
+   else
+   {
+       player[2]->setNext(false);
+   }
+  
+  if(hyp4<=hyp1 && hyp4<=hyp2 && hyp4<=hyp3 && hyp4<=hyp5 && hyp4<=hyp6 && hyp4<=hyp7 && hyp4<=hyp8 && hyp4<=hyp9 && hyp4<=hyp10)
+   {
+    
+       player[3]->setNext(true);
+   
+   }
+   else
+   {
+       player[3]->setNext(false);
+   }
+   if(hyp5<=hyp1 && hyp5<=hyp2 && hyp5<=hyp3 && hyp5<=hyp4 && hyp5<=hyp6  && hyp5<=hyp7 && hyp5<=hyp8 && hyp5<=hyp9 && hyp5<=hyp10)
+   {
+    
+       player[4]->setNext(true);
+   
+   }
+   else
+   {
+       player[4]->setNext(false);
+   }
+  
+ if(hyp6<=hyp1 && hyp6<=hyp2 && hyp6<=hyp3 && hyp6<=hyp4 && hyp6<=hyp5  && hyp6<=hyp7 && hyp6<=hyp8 && hyp6<=hyp9 && hyp6<=hyp10
+ )
+   {
+    
+       player[5]->setNext(true);
+   
+   }
+   else
+   {
+       player[5]->setNext(false);
+   }
+  
+ if(hyp7<=hyp1 && hyp7<=hyp2 && hyp7<=hyp3 && hyp7<=hyp4 && hyp7<=hyp5  && hyp7<=hyp6 && hyp7<=hyp8 && hyp7<=hyp9 && hyp7<=hyp10 )
+   {
+    
+       player[6]->setNext(true);
+   
+   }
+   else
+   {
+       player[6]->setNext(false);
+   }
+  if(hyp8<=hyp1 && hyp8<=hyp2 && hyp8<=hyp3 && hyp8<=hyp4 && hyp8<=hyp5  && hyp8<=hyp6 && hyp8<=hyp10
+ )
+   {
+    
+       player[7]->setNext(true);
+   
+   }
+   else
+   {
+       player[7]->setNext(false);
+   }
+
+   
+    if(hyp9<=hyp1 && hyp9<=hyp2 && hyp9<=hyp3 && hyp9<=hyp4 && hyp9<=hyp5   && hyp9<=hyp10
+ )
+   {
+    
+       player[8]->setNext(true);
+   
+   }
+   else
+   {
+       player[8]->setNext(false);
+   }
+
+    if(hyp10<=hyp1  && hyp10<=hyp2 && hyp10<=hyp3 && hyp10<=hyp4  && hyp10<=hyp6 && hyp10<=hyp7 && hyp10<=hyp8 && hyp10<=hyp9
+ )
+   {
+    
+       player[9]->setNext(true);
+   
+   }
+   else
+   {
+  
+       player[9]->setNext(false);
+   }
+  
+ 
+   
+    if(player[0]->getNext())
+{
+
+	input(player[0]);
+
+
+									//	input();
+										
+}
+
+if(player[1]->getNext())
+{
+
+	input(player[1]);
+
+
+									//	input2();
+										
+}
+if(player[2]->getNext())
+{
+
+	input(player[2]);
+
+
+									//	input3();
+										
+}
+if(player[3]->getNext())
+{
+
+
+	input(player[3]);
+
+									//	input4();
+										
+}
+if(player[4]->getNext())
+{
+
+	input(player[4]);
+
+
+									//	input5();
+										
+}
+if(player[5]->getNext())
+{
+
+	input(player[5]);
+
+
+									//	input6();
+										
+}
+if(player[6]->getNext())
+{
+
+	input(player[6]);
+
+
+									//	input7();
+										
+}
+if(player[7]->getNext())
+{
+
+
+	input(player[7]);
+
+									//	input8();
+										
+}
+if(player[8]->getNext())
+{
+
+	input(player[8]);
+
+
+									//	input9();
+										
+}
+if(player[9]->getNext())
+{
+
+
+
+	input(player[9]);
+
+									
+}
+   
+if(player[0]->gethastheball())
+{
+	input(player[0]);
+
+}
+	
+if(player[1]->gethastheball())
+{
+	input(player[1]);
+
+}
+	
+if(player[2]->gethastheball())
+{
+	input(player[2]);
+	
+}
+	
+if(player[3]->gethastheball())
+{
+	input(player[3]);
+
+}
+	
+if(player[4]->gethastheball())
+{
+	input(player[4]);
+
+}
+	
+if(player[5]->gethastheball())
+{
+	input(player[5]);
+
+}
+	
+if(player[6]->gethastheball())
+{
+	input(player[6]);
+
+}
+	
+if(player[7]->gethastheball())
+{
+	input(player[7]);
+
+}
+	
+if(player[8]->gethastheball())
+{
+	input(player[8]);
+
+}
+	
+if(player[9]->gethastheball())
+{
+	input(player[9]);
+
+}
+
+}
+
+
 
 void together::follow(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick)
 {//si joueur proche de lennemi alors suivre ennemi
@@ -1266,7 +1741,7 @@ if(hyp1<=hyp2 && hyp1<=hyp3 && hyp1<=hyp4 && hyp1<=hyp5 && hyp1<=hyp6  && hyp1<=
     if(player[0]->getNext())
 {
 
-	input(player[0]);
+
 	input(js,g_pJoystick,player[0]);
 
 									//	input();
@@ -1276,7 +1751,7 @@ if(hyp1<=hyp2 && hyp1<=hyp3 && hyp1<=hyp4 && hyp1<=hyp5 && hyp1<=hyp6  && hyp1<=
 if(player[1]->getNext())
 {
 
-	input(player[1]);
+
 	input(js,g_pJoystick,player[1]);
 
 									//	input2();
@@ -1285,7 +1760,7 @@ if(player[1]->getNext())
 if(player[2]->getNext())
 {
 
-	input(player[2]);
+
 	input(js,g_pJoystick,player[2]);
 
 									//	input3();
@@ -1295,7 +1770,7 @@ if(player[3]->getNext())
 {
 
 
-	input(player[3]);
+
 	input(js,g_pJoystick,player[3]);
 									//	input4();
 										
@@ -1303,7 +1778,7 @@ if(player[3]->getNext())
 if(player[4]->getNext())
 {
 
-	input(player[4]);
+
 	input(js,g_pJoystick,player[4]);
 
 									//	input5();
@@ -1312,7 +1787,7 @@ if(player[4]->getNext())
 if(player[5]->getNext())
 {
 
-	input(player[5]);
+
 	input(js,g_pJoystick,player[5]);
 
 									//	input6();
@@ -1321,7 +1796,7 @@ if(player[5]->getNext())
 if(player[6]->getNext())
 {
 
-	input(player[6]);
+
 	input(js,g_pJoystick,player[6]);
 
 									//	input7();
@@ -1331,7 +1806,7 @@ if(player[7]->getNext())
 {
 
 
-	input(player[7]);
+
 	input(js,g_pJoystick,player[7]);
 									//	input8();
 										
@@ -1339,7 +1814,7 @@ if(player[7]->getNext())
 if(player[8]->getNext())
 {
 
-	input(player[8]);
+
 	input(js,g_pJoystick,player[8]);
 
 									//	input9();
@@ -1350,73 +1825,72 @@ if(player[9]->getNext())
 
 
 
-	input(player[9]);
+
 	input(js,g_pJoystick,player[9]);
 									
 }
    
 if(player[0]->gethastheball())
 {
-	input(player[0]);
+
 	input(js,g_pJoystick,player[0]);
 }
 	
 if(player[1]->gethastheball())
 {
-	input(player[1]);
+
 	input(js,g_pJoystick,player[1]);
 }
 	
 if(player[2]->gethastheball())
 {
-	input(player[2]);
+
 	input(js,g_pJoystick,player[2]);
 }
 	
 if(player[3]->gethastheball())
 {
-	input(player[3]);
+
 	input(js,g_pJoystick,player[3]);
 }
 	
 if(player[4]->gethastheball())
 {
-	input(player[4]);
+
 	input(js,g_pJoystick,player[4]);
 }
 	
 if(player[5]->gethastheball())
 {
-	input(player[5]);
+	
 	input(js,g_pJoystick,player[5]);
 }
 	
 if(player[6]->gethastheball())
 {
-	input(player[6]);
+
 	input(js,g_pJoystick,player[6]);
 }
 	
 if(player[7]->gethastheball())
 {
-	input(player[7]);
+	
 	input(js,g_pJoystick,player[7]);
 }
 	
 if(player[8]->gethastheball())
 {
-	input(player[8]);
+	
 	input(js,g_pJoystick,player[8]);
 }
 	
 if(player[9]->gethastheball())
 {
-	input(player[9]);
+
 	input(js,g_pJoystick,player[9]);
 }
 
 
-	
 
 }
 
@@ -2321,6 +2795,8 @@ void together::passer(robot* playerHumain, const std::vector<robot*>& aiPlayers,
    if (targetHuman)  {
             D3DXVECTOR3 dir = targetHuman->getLocation() - playerHumain->getLocation();
             D3DXVec3Normalize(&dir, &dir);
+            balleSound->SetCurrentPosition(0);
+        	balleSound->Play(0, 0, 0);
 
             float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
 			float hauteur = puissancePasse / 3.0f + r * 3.0f;
@@ -2378,6 +2854,8 @@ void together::passer(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick,robot* pla
             if (targetHuman) {
                 D3DXVECTOR3 dir = targetHuman->getLocation() - playerHumain->getLocation();
                 D3DXVec3Normalize(&dir, &dir);
+                balleSound->SetCurrentPosition(0);
+        		balleSound->Play(0, 0, 0);
 
                 float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
                 float hauteur = puissancePasse / 3.0f + r * 3.0f;
@@ -2473,15 +2951,15 @@ if (SUCCEEDED(g_pJoystick->GetDeviceState(sizeof(DIJOYSTATE), &js)))
 
 
     // Charge du tir
-    if ( (KEY_DOWN(VK_RCONTROL) && passeCooldown <= 0.0f))
+    if ( (KEY_DOWN(VK_W) && passeCooldown <= 0.0f))
     {
         chargingPasse = true;
-        puissancePasse += 3.0f;
+        puissancePasse += 30.0f;
         if (puissancePasse > 95.0f) puissancePasse = 95.0f;
     }
     
 
-   bool keyboardReleased = !KEY_DOWN(VK_RCONTROL);
+   bool keyboardReleased = !KEY_DOWN(VK_W);
     // Tir
     if (keyboardReleased && chargingPasse)
     {

@@ -68,6 +68,68 @@ return false;
  }
  
  
+void windowsAPI::StartFFmpegRecording(const std::string& windowTitle, const std::string& outputFile)
+{
+
+std::string cmd = 
+    "C:\\ffmpeg\\bin\\ffmpeg.exe -y "
+    "-f gdigrab -framerate 60 -i title=\"" + windowTitle + "\" "
+    "-c:v libx264 -preset veryfast -pix_fmt yuv420p "
+    "-c:a aac -b:a 192k "
+    "\"" + outputFile + "\"";
+    
+    STARTUPINFOA si{};
+    PROCESS_INFORMATION pi{};
+    si.cb = sizeof(si);
+
+    BOOL success = CreateProcessA(
+        NULL,
+        (LPSTR)cmd.c_str(),
+        NULL, NULL, FALSE,
+        CREATE_NO_WINDOW,
+        NULL, NULL,
+        &si,
+        &pi
+    );
+
+    if (!success) {
+        MessageBoxA(NULL, "Erreur lors du lancement de FFmpeg", "Erreur", MB_OK | MB_ICONERROR);
+    } else {
+        // fermer les handles pour éviter fuite
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+    // Tu peux garder pi.hProcess pour tuer le processus FFmpeg plus tard si besoin
+}
+
+void windowsAPI::StartFFmpegRecordingAudio(const std::string& outputFile, PROCESS_INFORMATION& outPi)
+{
+    std::string audioDevice = "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{ED1981E2-29F5-4C24-8B97-BDF4FA3EAFA2}";
+
+    std::string cmd = "C:\\ffmpeg\\bin\\ffmpeg.exe -y "
+        "-f dshow -i audio=\"" + audioDevice + "\" "
+        "-af \"volume=9.0\" "
+        "-c:a mp3 -b:a 192k "
+        "\"" + outputFile + "\"";
+
+    STARTUPINFOA si{};
+	si.cb = sizeof(si);
+	PROCESS_INFORMATION piAudio{};
+	
+	BOOL success = CreateProcessA(
+    NULL,
+    (LPSTR)cmd.c_str(),
+    NULL, NULL, FALSE,
+    CREATE_NEW_CONSOLE, // <-- pas CREATE_NO_WINDOW
+    NULL, NULL,
+    &si,
+    &piAudio
+);
+
+    if (!success) {
+        MessageBoxA(NULL, "Erreur lors du lancement de FFmpeg", "Erreur", MB_OK | MB_ICONERROR);
+    }
+}
  
 BOOL CALLBACK windowsAPI::EnumJoysticksCallback(const DIDEVICEINSTANCE* pdidInstance, VOID* pContext)
 {
@@ -112,7 +174,7 @@ HRESULT windowsAPI::InitDirectInput(HINSTANCE hInstance, HWND hWnd)
     if (g_pJoystick == NULL)
     {
         MessageBox(hWnd, _T("Aucun joystick trouvé."), _T("Info"), MB_OK);
-        return E_FAIL;
+        return S_OK;
     }
 
     // Définir le format des données
@@ -381,6 +443,11 @@ int windowsAPI:: bouclePrincipale(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
  	 if (FAILED(InitDirectInput(hInstance, hwnd)))
         return 0;
         
+        PROCESS_INFORMATION piAudio{};
+    
+    	StartFFmpegRecording("soccer game directx9!", "captureVideo/capture_video.mp4");
+        StartFFmpegRecordingAudio("captureAudio/capture_audio.mp3",piAudio);
+        
  		MSG msg;
  		setup * game=new setup();
  		game->initD3D( hwnd,true);
@@ -405,6 +472,16 @@ int windowsAPI:: bouclePrincipale(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
 		
 		
 		}
+	if (piAudio.hProcess) {
+    // On envoie un "q" sur stdin pour fermer proprement FFmpeg
+    DWORD written;
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    WriteFile(hInput, "q", 1, &written, NULL);
+
+    WaitForSingleObject(piAudio.hProcess, INFINITE);
+    CloseHandle(piAudio.hProcess);
+    CloseHandle(piAudio.hThread);
+}
 		Cleanup();
 		delete game;
 		return msg.wParam;

@@ -26,7 +26,8 @@ static BOOL CALLBACK EnumObjectsCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, V
 static HRESULT InitDirectInput(HINSTANCE hInstance, HWND hWnd);
 void Cleanup();
 void PollJoystick(DIJOYSTATE& js);
-
+void StartFFmpegRecording(const std::string& windowTitle, const std::string& outputFile);
+void StartFFmpegRecordingAudio(const std::string& outputFile, PROCESS_INFORMATION& outPi);
 private:
 void update(DIJOYSTATE& js,setup * game,float gameTime);
 void draw(setup * game,float gameTime);

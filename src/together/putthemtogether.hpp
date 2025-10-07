@@ -24,6 +24,7 @@
 #include <cstdlib>  // pour rand() et srand()
 #include <ctime>    // pour time()
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
+#define VK_W 0x57
 
 inline int randMToN(int M, int N);
 
@@ -40,6 +41,7 @@ class together
 	void movement();
 	void movementAI();
 	void movementBall();
+	void collision();
 	void collision(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick);
 	void collisionAI();
 	void passer(robot* playerHumain, const std::vector<robot*>& aiPlayers, const std::vector<robot*>& humanPlayers);
@@ -51,6 +53,7 @@ class together
 	void collisionStadePlayer(robot* player);
 	void collisionStadePlayerAI(robot* playerAI);
 	void collisionStadeBall(balle* b);
+	void follow();
 	void follow(DIJOYSTATE& js,LPDIRECTINPUTDEVICE8 g_pJoystick);
 	void followAI();
 	void camFollowBall(LPDIRECT3DDEVICE9 d3ddev);
@@ -104,6 +107,8 @@ class together
     bool chargingPasse;
     LPDIRECTSOUNDBUFFER balleSound = nullptr;
 	sound* son;
+	bool but;
+	DWORD goalStartTime = 0; // temps en millisecondes du but
 	
 };
 #endif
